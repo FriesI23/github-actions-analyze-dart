@@ -9,31 +9,36 @@ jobs:
   security_hardening:
     name: Check security hardening
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
     - name: Clone the repository
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
     - name: Ensure SHA pinned actions
-      uses: zgosalvez/github-actions-ensure-sha-pinned-actions@b35f285b9bb7e80de0967367cee66d3b6d50ceca
+      uses: zgosalvez/github-actions-ensure-sha-pinned-actions@ca46236c6ce584ae24bc6283ba8dcf4b3ec8a066
 
   build_test:
     name: Build & Test
     needs: security_hardening
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Clone the repository
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       with:
         ref: ${{ github.head_ref }} # https://github.com/stefanzweifel/git-auto-commit-action#checkout-the-correct-branch
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
     - name: Get runs.using version
       id: get-runs-using-version
-      uses: zgosalvez/github-actions-get-action-runs-using-version@7e91b33ec663b83a966c937c6267e2d19bc2103b
+      uses: zgosalvez/github-actions-get-action-runs-using-version@91693e324493459123f17556c0cc836acdc711b5
     - name: Set up Node
-      uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+      uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
       with:
         node-version: v${{ steps.get-runs-using-version.outputs.version }}
     - name: Cache Node Packages
       id: node-cache
-      uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
       with:
         path: ~/.npm
         key: node-cache-${{ steps.get-runs-using-version.outputs.prop }}-${{ hashFiles('**/package-lock.json') }}
@@ -46,6 +51,6 @@ jobs:
       run: npm run lint
     - name: Prepare
       run: npm run prepare
-    - uses: stefanzweifel/git-auto-commit-action@8756aa072ef5b4a080af5dc8fef36c5d586e521d
+    - uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9
       with:
         commit_message: Apply `npm run prepare` changes
